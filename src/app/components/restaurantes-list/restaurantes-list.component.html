@@ -1,0 +1,88 @@
+<div class="container">
+  <div class="header">
+    <h1>Gestión de Restaurantes</h1>
+    <a routerLink="/restaurantes/nuevo" class="btn btn-primary">
+      + Nuevo Restaurante
+    </a>
+  </div>
+
+  <!-- Barra de búsqueda -->
+  <div class="search-bar">
+    <input
+      type="text"
+      [(ngModel)]="terminoBusqueda"
+      (input)="buscarRestaurantes()"
+      placeholder="Buscar restaurantes..."
+      class="search-input"
+    />
+    @if (terminoBusqueda()) {
+      <button (click)="limpiarBusqueda()" class="btn-clear">✕</button>
+    }
+  </div>
+
+  <!-- Mensajes de error -->
+  @if (error()) {
+    <div class="alert alert-error">
+      {{ error() }}
+    </div>
+  }
+
+  <!-- Indicador de carga -->
+  @if (cargando()) {
+    <div class="loading">Cargando...</div>
+  }
+
+  <!-- Tabla de restaurantes -->
+  @if (!cargando() && restaurantesFiltrados().length > 0) {
+    <div class="table-container">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Nombre</th>
+            <th>Dirección</th>
+            <th>Teléfono</th>
+            <th>Tipo de Cocina</th>
+            <th>Capacidad</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (restaurante of restaurantesFiltrados(); track restaurante.id_restaurante || restaurante.id || $index) {
+            <tr>
+              <td>{{ restaurante.id_restaurante || restaurante.id || 'N/A' }}</td>
+              <td>{{ restaurante.nombre }}</td>
+              <td>{{ restaurante.direccion }}</td>
+              <td>{{ restaurante.telefono }}</td>
+              <td>{{ restaurante.tipo_cocina || 'N/A' }}</td>
+              <td>{{ restaurante.capacidad_maxima || restaurante.capacidad || 'N/A' }}</td>
+              <td class="actions">
+                @if (restaurante.id_restaurante || restaurante.id) {
+                  <a [routerLink]="['/restaurantes/editar', restaurante.id_restaurante || restaurante.id]" class="btn btn-edit">
+                    Editar
+                  </a>
+                  <button (click)="eliminarRestaurante(restaurante.id_restaurante || restaurante.id)" class="btn btn-delete">
+                    Eliminar
+                  </button>
+                } @else {
+                  <span class="text-muted">Sin ID</span>
+                }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+
+  <!-- Mensaje cuando no hay resultados -->
+  @if (!cargando() && restaurantesFiltrados().length === 0 && !error()) {
+    <div class="empty-state">
+      <p>No se encontraron restaurantes.</p>
+      <a routerLink="/restaurantes/nuevo" class="btn btn-primary">
+        Crear primer restaurante
+      </a>
+    </div>
+  }
+</div>
+

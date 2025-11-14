@@ -1,0 +1,93 @@
+<div class="container">
+  <div class="header">
+    <h1>{{ esEdicion() ? 'Editar Restaurante' : 'Nuevo Restaurante' }}</h1>
+    <button (click)="cancelar()" class="btn btn-secondary">
+      ← Volver
+    </button>
+  </div>
+
+  <!-- Mensajes de error -->
+  @if (error()) {
+    <div class="alert alert-error">
+      {{ error() }}
+    </div>
+  }
+
+  <!-- Indicador de carga -->
+  @if (cargando() && esEdicion()) {
+    <div class="loading">Cargando...</div>
+  }
+
+  <!-- Formulario -->
+  @if (!cargando() || !esEdicion()) {
+    <form (ngSubmit)="guardar()" class="form">
+      <div class="form-group">
+        <label for="nombre">Nombre *</label>
+        <input
+          type="text"
+          id="nombre"
+          [(ngModel)]="restaurante.nombre"
+          name="nombre"
+          required
+          class="form-input"
+        />
+      </div>
+
+      <div class="form-group">
+        <label for="direccion">Dirección *</label>
+        <input
+          type="text"
+          id="direccion"
+          [(ngModel)]="restaurante.direccion"
+          name="direccion"
+          required
+          class="form-input"
+        />
+      </div>
+
+      <div class="form-group">
+        <label for="telefono">Teléfono *</label>
+        <input
+          type="text"
+          id="telefono"
+          [(ngModel)]="restaurante.telefono"
+          name="telefono"
+          required
+          class="form-input"
+        />
+      </div>
+
+      <div class="form-group">
+        <label for="tipo_cocina">Tipo de Cocina</label>
+        <input
+          type="text"
+          id="tipo_cocina"
+          [(ngModel)]="restaurante.tipo_cocina"
+          name="tipo_cocina"
+          class="form-input"
+        />
+      </div>
+
+      <div class="form-group">
+        <label for="capacidad">Capacidad</label>
+        <input
+          type="number"
+          id="capacidad"
+          [(ngModel)]="restaurante.capacidad"
+          name="capacidad"
+          class="form-input"
+        />
+      </div>
+
+      <div class="form-actions">
+        <button type="button" (click)="cancelar()" class="btn btn-secondary">
+          Cancelar
+        </button>
+        <button type="submit" [disabled]="cargando()" class="btn btn-primary">
+          {{ cargando() ? 'Guardando...' : (esEdicion() ? 'Actualizar' : 'Crear') }}
+        </button>
+      </div>
+    </form>
+  }
+</div>
+

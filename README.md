@@ -1,59 +1,145 @@
-# FrontendRestaurante
+# Frontend Restaurante - Integración con Backend
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 20.3.9.
+Este proyecto es el frontend de un sistema de gestión de restaurantes desarrollado en Angular, que se integra con un backend en Python.
 
-## Development server
+## 🚀 Características
 
-To start a local development server, run:
+- ✅ **CRUD Completo**: Crear, Leer, Actualizar y Eliminar restaurantes
+- ✅ **Búsqueda en tiempo real**: Filtrado de restaurantes por término de búsqueda
+- ✅ **Interfaz moderna**: Diseño responsive y fácil de usar
+- ✅ **Manejo de errores**: Mensajes claros para el usuario
+- ✅ **Indicadores de carga**: Feedback visual durante las operaciones
 
+## 📋 Requisitos Previos
+
+- Node.js (versión 18 o superior)
+- npm o yarn
+- Backend en Python corriendo y accesible
+
+## 🔧 Instalación
+
+1. Instala las dependencias:
 ```bash
-ng serve
+npm install
 ```
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
-
-## Code scaffolding
-
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
-
-```bash
-ng generate component component-name
+2. Configura la URL del backend en `src/app/services/api.service.ts`:
+```typescript
+private apiUrl = 'http://localhost:8000/api'; // Cambia esta URL según tu backend
 ```
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+## 🏃 Ejecución
+
+Para iniciar el servidor de desarrollo:
 
 ```bash
-ng generate --help
+npm start
 ```
 
-## Building
+La aplicación estará disponible en `http://localhost:4200`
 
-To build the project run:
+## 📡 Endpoints del Backend Esperados
 
-```bash
-ng build
+El frontend espera que el backend tenga los siguientes endpoints:
+
+- `GET /api/restaurantes` - Obtener lista completa de restaurantes
+- `GET /api/restaurantes?search={termino}` - Buscar restaurantes
+- `GET /api/restaurantes/{id}` - Obtener un restaurante por ID
+- `POST /api/restaurantes` - Crear un nuevo restaurante
+- `PUT /api/restaurantes/{id}` - Actualizar un restaurante
+- `DELETE /api/restaurantes/{id}` - Eliminar un restaurante
+
+### Formato de Datos
+
+El modelo de Restaurante espera los siguientes campos:
+
+```typescript
+{
+  id?: number;
+  nombre: string;        // Requerido
+  direccion: string;      // Requerido
+  telefono: string;       // Requerido
+  tipo_cocina?: string;   // Opcional
+  capacidad?: number;     // Opcional
+}
 ```
 
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
+## 🎯 Funcionalidades Implementadas
 
-## Running unit tests
+### 1. Listar Restaurantes
+- Muestra todos los restaurantes en una tabla
+- Botón para crear nuevo restaurante
+- Botones para editar y eliminar cada restaurante
 
-To execute unit tests with the [Karma](https://karma-runner.github.io) test runner, use the following command:
+### 2. Búsqueda
+- Barra de búsqueda que filtra en tiempo real
+- Búsqueda por cualquier campo del restaurante
 
-```bash
-ng test
+### 3. Crear Restaurante
+- Formulario con validación
+- Campos: nombre, dirección, teléfono, tipo de cocina, capacidad
+
+### 4. Editar Restaurante
+- Mismo formulario que crear, pero prellenado con datos existentes
+- Actualiza el restaurante seleccionado
+
+### 5. Eliminar Restaurante
+- Confirmación antes de eliminar
+- Actualización automática de la lista después de eliminar
+
+## 🎨 Estructura del Proyecto
+
+```
+src/
+├── app/
+│   ├── components/
+│   │   ├── restaurantes-list/      # Componente para listar restaurantes
+│   │   └── restaurante-form/       # Componente para crear/editar
+│   ├── models/
+│   │   └── restaurante.model.ts    # Interfaz del modelo Restaurante
+│   ├── services/
+│   │   └── api.service.ts          # Servicio para comunicación con API
+│   ├── app.config.ts               # Configuración de la app
+│   ├── app.routes.ts               # Rutas de la aplicación
+│   └── app.ts                      # Componente principal
 ```
 
-## Running end-to-end tests
+## 🔍 Verificación de Peticiones HTTP
 
-For end-to-end (e2e) testing, run:
+Para ver las peticiones HTTP en el navegador:
 
-```bash
-ng e2e
-```
+1. Abre las **Herramientas de Desarrollador** (F12)
+2. Ve a la pestaña **Network** (Red)
+3. Realiza las operaciones CRUD
+4. Verás todas las peticiones HTTP con sus respuestas
 
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
+## 📝 Notas Importantes
 
-## Additional Resources
+- Asegúrate de que el backend tenga CORS habilitado para permitir peticiones desde `http://localhost:4200`
+- Si tu backend usa un puerto diferente o una URL diferente, actualiza `apiUrl` en `api.service.ts`
+- Los campos opcionales pueden ser `null` o `undefined` en el backend
 
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+## 🐛 Solución de Problemas
+
+### Error de CORS
+Si ves errores de CORS, asegúrate de que tu backend permita peticiones desde el origen del frontend.
+
+### No se cargan los datos
+- Verifica que el backend esté corriendo
+- Verifica la URL en `api.service.ts`
+- Revisa la consola del navegador para ver errores específicos
+
+### Errores 404
+- Verifica que los endpoints del backend coincidan con los esperados
+- Revisa que la ruta base (`/api`) sea correcta
+
+## 📚 Tecnologías Utilizadas
+
+- Angular 20
+- TypeScript
+- RxJS
+- CSS3
+
+## 👥 Integrantes
+
+[Agregar nombres de los integrantes aquí]
