@@ -74,23 +74,29 @@ export class RestaurantesListComponent implements OnInit {
       }
     });
   }
-
   eliminarRestaurante(id: string | number | undefined): void {
     if (!id || id === 'undefined' || id === 'null') {
       console.error('ID no válido para eliminar:', id);
       this.error.set('Error: No se pudo obtener el ID del restaurante para eliminar.');
       return;
     }
-
-    if (!confirm('¿Estás seguro de que deseas eliminar este restaurante?')) {
+  
+    const confirmMessage = '¿Estás seguro de que deseas eliminar este restaurante?\n\n' +
+      'ADVERTENCIA: Esta acción eliminará también:\n' +
+      '- Todos los menús asociados\n' +
+      '- Todas las mesas del restaurante\n' +
+      '- Todas las reservas realizadas\n\n' +
+      'Esta acción NO se puede deshacer.';
+  
+    if (!confirm(confirmMessage)) {
       return;
     }
-
+  
     this.cargando.set(true);
     this.error.set(null);
-
+  
     console.log('Intentando eliminar restaurante con ID:', id);
-
+  
     this.apiService.eliminarRestaurante(id).subscribe({
       next: () => {
         console.log('Restaurante eliminado exitosamente');
@@ -121,6 +127,7 @@ export class RestaurantesListComponent implements OnInit {
           errorMessage = err.message;
         }
         
+        // ✅ CORRECCIÓN AQUÍ - Agregado paréntesis de apertura
         this.error.set(`Error al eliminar: ${errorMessage}`);
         this.cargando.set(false);
       }

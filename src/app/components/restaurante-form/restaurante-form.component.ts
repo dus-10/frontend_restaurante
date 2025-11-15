@@ -19,7 +19,7 @@ export class RestauranteFormComponent implements OnInit {
     telefono: '',
     email: '',
     capacidad_maxima: undefined,
-    capacidad: undefined, // Alias para el formulario
+    capacidad: undefined,
     tipo_cocina: ''
   };
 
@@ -36,14 +36,19 @@ export class RestauranteFormComponent implements OnInit {
 
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id');
-    if (id && id !== 'undefined' && id !== 'null') {
+    
+    console.log('ID recibido de la ruta:', id);
+    
+    // ✅ CORRECCIÓN: Solo es edición si hay un ID válido Y no es 'nuevo'
+    if (id && id !== 'nuevo' && id !== 'undefined' && id !== 'null') {
+      console.log('Modo EDICIÓN detectado');
       this.esEdicion.set(true);
-      // El ID puede ser UUID (string) o número
       this.restauranteId = id;
       this.cargarRestaurante(this.restauranteId);
     } else {
-      console.error('ID no válido en la ruta:', id);
-      this.error.set('ID de restaurante no válido.');
+      console.log('Modo CREACIÓN detectado');
+      this.esEdicion.set(false);
+      this.restauranteId = null;
     }
   }
 
@@ -53,60 +58,76 @@ export class RestauranteFormComponent implements OnInit {
 
     this.apiService.getRestaurante(id).subscribe({
       next: (data) => {
-        this.restaurante = data;
-        // Asegurar que capacidad_maxima se mapee a capacidad para el formulario
-        if (data.capacidad_maxima !== undefined && data.capacidad === undefined) {
+        console.log('Restaurante cargado para editar:', data);
+        this.restaurante = { ...data };
+        
+        // Mapear capacidad_maxima a capacidad para el formulario
+        if (data.capacidad_maxima !== undefined) {
           this.restaurante.capacidad = data.capacidad_maxima;
         }
         this.cargando.set(false);
       },
       error: (err) => {
         console.error('Error al cargar restaurante:', err);
-        this.error.set('Error al cargar el restaurante.');
+        this.error.set('Error al cargar el restaurante. Verifica que exista.');
         this.cargando.set(false);
       }
     });
   }
 
   guardar(): void {
+    console.log('Método guardar() ejecutado');
+    console.log('esEdicion:', this.esEdicion());
+    console.log('restauranteId:', this.restauranteId);
+    console.log('Datos del restaurante ANTES de limpiar:', this.restaurante);
+  
     if (!this.validarFormulario()) {
       return;
     }
-
-    // Validar que tenemos el ID si estamos editando
-    if (this.esEdicion() && (!this.restauranteId || this.restauranteId === 'undefined' || this.restauranteId === 'null')) {
-      this.error.set('Error: No se pudo obtener el ID del restaurante para editar.');
-      return;
+  
+    // ✅ CRÍTICO: Limpiar email si está vacío
+    if (!this.restaurante.email || this.restaurante.email.trim() === '') {
+      delete this.restaurante.email;
     }
-
+  
+    console.log('Datos del restaurante DESPUÉS de limpiar:', this.restaurante);
+  
     this.cargando.set(true);
     this.error.set(null);
-
-    // Crear una copia sin el ID para evitar enviarlo en el cuerpo
-    const { id, ...restauranteData } = this.restaurante;
-
+  
+    // Preparar datos: eliminar campos que no deben enviarse
+    const { id, id_restaurante, fecha_creacion, fecha_edicion, ...restauranteData } = this.restaurante;
+  
     if (this.esEdicion() && this.restauranteId) {
-      // Actualizar
+      // ========== ACTUALIZAR ==========
+      console.log('ACTUALIZANDO restaurante con ID:', this.restauranteId);
+      console.log('Datos a enviar:', restauranteData);
+      
       this.apiService.actualizarRestaurante(this.restauranteId, restauranteData).subscribe({
-        next: () => {
+        next: (response) => {
+          console.log('Restaurante actualizado exitosamente:', response);
           this.router.navigate(['/restaurantes']);
         },
         error: (err) => {
           console.error('Error al actualizar:', err);
-          const errorMessage = err?.error?.detail || err?.error?.message || err?.message || 'Error al actualizar el restaurante.';
+          const errorMessage = this.extraerMensajeError(err);
           this.error.set(`Error al actualizar: ${errorMessage}`);
           this.cargando.set(false);
         }
       });
     } else {
-      // Crear
+      // ========== CREAR ==========
+      console.log('CREANDO nuevo restaurante');
+      console.log('Datos a enviar:', restauranteData);
+      
       this.apiService.crearRestaurante(restauranteData).subscribe({
-        next: () => {
+        next: (response) => {
+          console.log('Restaurante creado exitosamente:', response);
           this.router.navigate(['/restaurantes']);
         },
         error: (err) => {
           console.error('Error al crear:', err);
-          const errorMessage = err?.error?.detail || err?.error?.message || err?.message || 'Error al crear el restaurante.';
+          const errorMessage = this.extraerMensajeError(err);
           this.error.set(`Error al crear: ${errorMessage}`);
           this.cargando.set(false);
         }
@@ -115,15 +136,48 @@ export class RestauranteFormComponent implements OnInit {
   }
 
   validarFormulario(): boolean {
-    if (!this.restaurante.nombre || !this.restaurante.direccion || !this.restaurante.telefono) {
-      this.error.set('Por favor completa todos los campos obligatorios.');
+    console.log('Validando formulario...');
+    
+    if (!this.restaurante.nombre?.trim()) {
+      this.error.set('El nombre es obligatorio.');
       return false;
     }
+    if (!this.restaurante.direccion?.trim()) {
+      this.error.set('La dirección es obligatoria.');
+      return false;
+    }
+    if (!this.restaurante.telefono?.trim()) {
+      this.error.set('El teléfono es obligatorio.');
+      return false;
+    }
+    
+    console.log('Formulario válido');
     return true;
+  }
+
+  private extraerMensajeError(err: any): string {
+    if (err?.error?.detail) {
+      if (typeof err.error.detail === 'string') {
+        return err.error.detail;
+      }
+      if (Array.isArray(err.error.detail)) {
+        return err.error.detail.map((e: any) => e.msg || JSON.stringify(e)).join(', ');
+      }
+      return JSON.stringify(err.error.detail);
+    }
+    if (err?.error?.message) {
+      return err.error.message;
+    }
+    if (err?.message) {
+      return err.message;
+    }
+    if (err?.status === 0) {
+      return 'No se puede conectar con el backend. Verifica que esté corriendo en http://127.0.0.1:8000';
+    }
+    return 'Error desconocido';
   }
 
   cancelar(): void {
     this.router.navigate(['/restaurantes']);
   }
 }
-
